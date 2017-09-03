@@ -3,6 +3,8 @@ import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -11,7 +13,8 @@ public class PainelDesenho extends JPanel implements MouseListener, MouseMotionL
   TiposPrimitivos tipo;
   Ponto2D p1;
   Ponto2D p2;
-  Reta2D rOld;
+  List<Reta2D> retas = new ArrayList<Reta2D>();
+  List<Circulo2D> circulos = new ArrayList<Circulo2D>();
 
   public PainelDesenho(JLabel msg, TiposPrimitivos tipo) {
     this.tipo = tipo;
@@ -45,16 +48,22 @@ public class PainelDesenho extends JPanel implements MouseListener, MouseMotionL
   public void mousePressed(MouseEvent e) {
     if (e.getButton() == 1) {
       p1 = new Ponto2D(e.getX(), e.getY());
-      //p2 = p1;
+      p2 = null;
     }
   }
 
   public void mouseReleased(MouseEvent e) {
 
+    if (tipo == TiposPrimitivos.RETAS) {
+      retas.add(new Reta2D(p1, p2));
+    }
+    else if (tipo == TiposPrimitivos.CIRCULOS) {
+      circulos.add(new Circulo2D(p1, p2.calcularDistancia(p1)));
+    }
   }
 
   public void mouseMoved(MouseEvent e) {
-      message(e);
+    message(e);
   }
 
   public void mouseClicked(MouseEvent e) {}
@@ -71,6 +80,15 @@ public class PainelDesenho extends JPanel implements MouseListener, MouseMotionL
       repaint();
   }
 
+  public void repaintAll(Graphics g) {
+    for(Reta2D r : retas) {
+      r.desenharReta(g);
+    }
+    for(Circulo2D c : circulos) {
+      c.desenharCirculoPolar(g);
+    }
+  }
+
   public void message(MouseEvent e){
       if (tipo == TiposPrimitivos.RETAS) {
           msg.setText("Primitivo: RETA (" + e.getX() + ", " + e.getY() + ")");
@@ -85,20 +103,17 @@ public class PainelDesenho extends JPanel implements MouseListener, MouseMotionL
   public void desenharPrimitivos(Graphics g) {
 
     if ((tipo == TiposPrimitivos.RETAS) && (p1 != null) && (p2 != null)) {
-      if (rOld != null) {
-        rOld.setCor(Color.WHITE);
-        //rOld.desenharReta(g);
-      }
-      
       Reta2D r = new Reta2D(p1, p2);
-      rOld = r;
       r.desenharReta(g);
     }
 
-    if ((tipo == TiposPrimitivos.CIRCULOS) && 
-      (p1 != null) && (p2 != null)) {
+    if ((tipo == TiposPrimitivos.CIRCULOS) && (p1 != null) && (p2 != null)) {
       Circulo2D r = new Circulo2D(p1, p2.calcularDistancia(p1));
       r.desenharCirculoPolar(g);
     }
+
+    repaintAll(g);
+
   }
+
 }
